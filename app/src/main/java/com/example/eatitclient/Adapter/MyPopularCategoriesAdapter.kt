@@ -6,14 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.Unbinder
 import com.bumptech.glide.Glide
 import com.example.eatitclient.Model.PopularCategoryModel
 import com.example.eatitclient.R
 import de.hdodenhof.circleimageview.CircleImageView
-import kotlinx.android.synthetic.main.layout_popular_categories_item.view.*
 
 class MyPopularCategoriesAdapter(
     internal var context: Context,
@@ -21,14 +17,12 @@ class MyPopularCategoriesAdapter(
 ) :
     RecyclerView.Adapter<MyPopularCategoriesAdapter.MyViewHolder>() {
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        @BindView(R.id.txt_category_name)
         var category_name:TextView?=null
-        @BindView(R.id.category_image)
         var category_image:CircleImageView?=null
 
-        var unbinder: Unbinder
         init {
-            unbinder =ButterKnife.bind(this,itemView)
+            category_name = itemView.findViewById(R.id.txt_category_name) as TextView
+            category_image = itemView.findViewById(R.id.category_image) as CircleImageView
         }
     }
 
