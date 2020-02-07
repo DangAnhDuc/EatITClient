@@ -5,6 +5,8 @@ import com.example.eatitclient.Model.FoodModel
 import com.example.eatitclient.Model.UserModel
 
 object Common {
+
+    var COMMENT_REF = "Comments"
     var foodSelected: FoodModel? = null
     var categorySelected: CategoryModel? = null
     val CATEGORY_REF = "Category"
