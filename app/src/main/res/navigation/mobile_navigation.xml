@@ -24,10 +24,10 @@
         tools:layout="@layout/fragment_food_details" />
 
     <fragment
-        android:id="@+id/nav_tools"
-        android:name="com.example.eatitclient.ui.tools.ToolsFragment"
-        android:label="@string/menu_tools"
-        tools:layout="@layout/fragment_tools" />
+        android:id="@+id/nav_cart"
+        android:name="com.example.eatitclient.ui.cart.CartFragment"
+        android:label="@string/menu_cart"
+        tools:layout="@layout/fragment_cart" />
 
 
     <fragment

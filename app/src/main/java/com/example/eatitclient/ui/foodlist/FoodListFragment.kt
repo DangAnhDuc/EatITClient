@@ -22,6 +22,12 @@ class FoodListFragment : Fragment() {
     var recycler_food: RecyclerView? = null
     var layoutAnimationController: LayoutAnimationController? = null
     var adapter: MyFoodListAdapter? = null
+
+    override fun onStop() {
+        if (adapter != null)
+            adapter!!.onStop()
+        super.onStop()
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

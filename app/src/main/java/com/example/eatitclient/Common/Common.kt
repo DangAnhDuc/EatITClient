@@ -1,10 +1,45 @@
 package com.example.eatitclient.Common
 
-import com.example.eatitclient.Model.CategoryModel
-import com.example.eatitclient.Model.FoodModel
-import com.example.eatitclient.Model.UserModel
+import com.example.eatitclient.Model.*
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 object Common {
+    fun formatPrice(price: Double): String {
+        if (price != 0.toDouble()) {
+            val df = DecimalFormat("#,##0.00")
+            df.roundingMode = RoundingMode.HALF_UP
+            val finalPrice = StringBuilder(df.format(price)).toString()
+            return finalPrice.replace(".", ",")
+        } else {
+            return "0,00"
+        }
+    }
+
+    fun calculateExtraPrice(
+        userSelectedSize: SizeModel?,
+        userSelectedAddon: MutableList<AddonModel>?
+    ): Double {
+        var result: Double = 0.0
+        if (userSelectedSize == null && userSelectedAddon == null) {
+            return 0.0
+        } else if (userSelectedSize == null) {
+            for (addonModel in userSelectedAddon!!) {
+                result += addonModel.price!!.toDouble()
+            }
+            return result
+
+        } else if (userSelectedAddon == null) {
+            result = userSelectedSize!!.price.toDouble()
+            return result
+        } else {
+            result = userSelectedSize!!.price.toDouble()
+            for (addonModel in userSelectedAddon!!) {
+                result += addonModel.price!!.toDouble()
+            }
+            return result
+        }
+    }
 
     var COMMENT_REF = "Comments"
     var foodSelected: FoodModel? = null
