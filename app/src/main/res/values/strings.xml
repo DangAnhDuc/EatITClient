@@ -16,5 +16,6 @@
     <string name="menu_food_list">Food List</string>
     <string name="menu_categories">Categories</string>
     <string name="action_clear_cart">Clear cart</string>
+    <string name="sign_out">Sign Out</string>
 
 </resources>

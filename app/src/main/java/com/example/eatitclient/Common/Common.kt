@@ -1,5 +1,11 @@
 package com.example.eatitclient.Common
 
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.style.StyleSpan
+import android.widget.TextView
 import com.example.eatitclient.Model.*
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -39,6 +45,16 @@ object Common {
             }
             return result
         }
+    }
+
+    fun setSpanString(welcome: String, name: String?, txtUser: TextView?) {
+        val buider = SpannableStringBuilder()
+        buider.append(welcome)
+        val txtSpannable = SpannableString(name)
+        val boldSpan = StyleSpan(Typeface.BOLD)
+        txtSpannable.setSpan(boldSpan, 0, name!!.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        buider.append(txtSpannable)
+        txtUser!!.setText(buider, TextView.BufferType.SPANNABLE)
     }
 
     var COMMENT_REF = "Comments"
