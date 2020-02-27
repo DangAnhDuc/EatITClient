@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.asksira.loopingviewpager.LoopingViewPager
 import com.example.eatitclient.Adapter.MyBestDealsAdapter
 import com.example.eatitclient.Adapter.MyPopularCategoriesAdapter
+import com.example.eatitclient.EventBus.MenuItemback
 import com.example.eatitclient.R
+import org.greenrobot.eventbus.EventBus
 
 class HomeFragment : Fragment() {
 
@@ -64,5 +66,10 @@ class HomeFragment : Fragment() {
     override fun onPause() {
         viewPager!!.pauseAutoScroll()
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        EventBus.getDefault().postSticky(MenuItemback())
+        super.onDestroy()
     }
 }

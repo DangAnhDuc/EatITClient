@@ -20,6 +20,7 @@ import com.example.eatitclient.Database.CartDatabase
 import com.example.eatitclient.Database.CartItem
 import com.example.eatitclient.Database.LocalCartDataSource
 import com.example.eatitclient.EventBus.CountCartEvent
+import com.example.eatitclient.EventBus.MenuItemback
 import com.example.eatitclient.Model.CommentModel
 import com.example.eatitclient.Model.FoodModel
 import com.example.eatitclient.R
@@ -117,14 +118,13 @@ class FoodDetailFragment : Fragment(), TextWatcher {
                         foodModel!!.key = Common.foodSelected!!.key
                         val sumRating = foodModel.ratingValue!!.toDouble() + ratingValue
                         val ratingCount = foodModel.ratingCount + 1
-                        val result = sumRating / ratingCount
 
                         val updateData = HashMap<String, Any>()
-                        updateData["ratingValue"] = result
+                        updateData["ratingValue"] = sumRating
                         updateData["ratingCount"] = ratingCount
 
                         foodModel.ratingCount = ratingCount
-                        foodModel.ratingValue = result
+                        foodModel.ratingValue = sumRating
 
                         p0.ref
                             .updateChildren(updateData)
@@ -149,7 +149,7 @@ class FoodDetailFragment : Fragment(), TextWatcher {
         food_name!!.text = StringBuilder(it!!.name!!)
         food_price!!.text = StringBuilder(it!!.price!!.toString())
         food_description!!.text = StringBuilder(it!!.description!!)
-        ratingBar!!.rating = it!!.ratingValue.toFloat()
+        ratingBar!!.rating = it!!.ratingValue.toFloat() / it!!.ratingCount
 
         for (sizeModel in it!!.size) {
             val radioButton = RadioButton(context)
@@ -397,7 +397,7 @@ class FoodDetailFragment : Fragment(), TextWatcher {
                 }
                 chip_group_selected_addon!!.addView(chip)
             }
-        } else if (Common.foodSelected!!.userSelectedAddon!!.size == 0) {
+        } else {
             chip_group_selected_addon!!.removeAllViews()
         }
     }
@@ -456,5 +456,10 @@ class FoodDetailFragment : Fragment(), TextWatcher {
                 chip_group_addon!!.addView(chip)
             }
         }
+    }
+
+    override fun onDestroy() {
+        EventBus.getDefault().postSticky(MenuItemback())
+        super.onDestroy()
     }
 }

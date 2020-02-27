@@ -35,4 +35,10 @@
         android:name="com.example.eatitclient.ui.foodlist.FoodListFragment"
         android:label="@string/menu_food_list"
         tools:layout="@layout/fragment_food_list" />
+
+    <fragment
+        android:id="@+id/nav_view_order"
+        android:name="com.example.eatitclient.ui.vieworders.ViewOrderFragment"
+        android:label="@string/menu_view_order"
+        tools:layout="@layout/fragment_view_order" />
 </navigation>

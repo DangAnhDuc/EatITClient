@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.eatitclient.Adapter.MyFoodListAdapter
 import com.example.eatitclient.Common.Common
+import com.example.eatitclient.EventBus.MenuItemback
 import com.example.eatitclient.R
+import org.greenrobot.eventbus.EventBus
 
 class FoodListFragment : Fragment() {
 
@@ -54,5 +56,10 @@ class FoodListFragment : Fragment() {
             AnimationUtils.loadLayoutAnimation(context, R.anim.layout_item_from_left)
 
         (activity as AppCompatActivity).supportActionBar!!.title = Common.categorySelected!!.name
+    }
+
+    override fun onDestroy() {
+        EventBus.getDefault().postSticky(MenuItemback())
+        super.onDestroy()
     }
 }

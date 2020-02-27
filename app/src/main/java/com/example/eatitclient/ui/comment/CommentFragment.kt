@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.eatitclient.Adapter.MyCommentAdapter
 import com.example.eatitclient.Callback.ICommentCallBack
 import com.example.eatitclient.Common.Common
+import com.example.eatitclient.EventBus.MenuItemback
 import com.example.eatitclient.Model.CommentModel
 import com.example.eatitclient.R
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -22,6 +23,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import dmax.dialog.SpotsDialog
+import org.greenrobot.eventbus.EventBus
 
 class CommentFragment : BottomSheetDialogFragment(), ICommentCallBack {
 
@@ -109,6 +111,11 @@ class CommentFragment : BottomSheetDialogFragment(), ICommentCallBack {
     override fun onCommentsLoadFailed(message: String) {
         Toast.makeText(context!!, "" + message, Toast.LENGTH_SHORT).show()
         dialog!!.dismiss()
+    }
+
+    override fun onDestroy() {
+        EventBus.getDefault().postSticky(MenuItemback())
+        super.onDestroy()
     }
 
 }

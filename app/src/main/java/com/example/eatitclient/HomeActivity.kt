@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
@@ -19,13 +20,17 @@ import com.example.eatitclient.Common.Common
 import com.example.eatitclient.Database.CartDataSource
 import com.example.eatitclient.Database.CartDatabase
 import com.example.eatitclient.Database.LocalCartDataSource
-import com.example.eatitclient.EventBus.CategoryClick
-import com.example.eatitclient.EventBus.CountCartEvent
-import com.example.eatitclient.EventBus.FoodItemClick
-import com.example.eatitclient.EventBus.HideFABCart
+import com.example.eatitclient.EventBus.*
+import com.example.eatitclient.Model.CategoryModel
+import com.example.eatitclient.Model.FoodModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import dmax.dialog.SpotsDialog
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -41,6 +46,9 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var cartDataSource: CartDataSource
     private lateinit var navController: NavController
     private var drawer: DrawerLayout? = null
+    private var dialog: android.app.AlertDialog? = null
+
+    private var menuItemClick = -1
     override fun onResume() {
         super.onResume()
         countCartItem()
@@ -49,6 +57,7 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        dialog = SpotsDialog.Builder().setContext(this).setCancelable(false).build()
         cartDataSource = LocalCartDataSource(CartDatabase.getInstance(this).cartDAO())
 
         val toolbar: Toolbar = findViewById(R.id.toolbar)
@@ -84,18 +93,28 @@ class HomeActivity : AppCompatActivity() {
                 if (p0.itemId == R.id.nav_sign_out) {
                     signOut()
                 } else if (p0.itemId == R.id.nav_home) {
-                    navController.navigate(R.id.nav_home)
+                    if (menuItemClick != p0.itemId) {
+                        navController.navigate(R.id.nav_home)
+
+                    }
                 } else if (p0.itemId == R.id.nav_cart) {
-                    navController.navigate(R.id.nav_cart)
+                    if (menuItemClick != p0.itemId)
+                        navController.navigate(R.id.nav_cart)
                 } else if (p0.itemId == R.id.nav_menu) {
-                    navController.navigate(R.id.nav_menu)
+                    if (menuItemClick != p0.itemId)
+                        navController.navigate(R.id.nav_menu)
+                } else if (p0.itemId == R.id.nav_view_order) {
+                    if (menuItemClick != p0.itemId)
+                        navController.navigate(R.id.nav_view_order)
                 }
+                menuItemClick = p0!!.itemId
                 return true
             }
 
         })
         countCartItem()
     }
+
 
     private fun signOut() {
         val buider = androidx.appcompat.app.AlertDialog.Builder(this)
@@ -159,6 +178,141 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onPopularFoodItemClick(event: PopularItemClick) {
+        if (event.popularModel != null) {
+            dialog!!.show()
+
+            FirebaseDatabase.getInstance().getReference("Category")
+                .child(event.popularModel!!.menu_id!!)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onCancelled(p0: DatabaseError) {
+                        dialog!!.dismiss()
+                        Toast.makeText(this@HomeActivity, "" + p0.message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
+
+                    override fun onDataChange(p0: DataSnapshot) {
+                        if (p0.exists()) {
+                            Common.categorySelected = p0.getValue(CategoryModel::class.java)
+                            Common.categorySelected!!.menu_id = p0.key
+                            FirebaseDatabase.getInstance().getReference("Category")
+                                .child(event.popularModel!!.menu_id!!)
+                                .child("foods")
+                                .orderByChild("id")
+                                .equalTo(event.popularModel.food_id)
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(p0: DataSnapshot) {
+                                        if (p0.exists()) {
+                                            for (foodSnapshot in p0.children) {
+                                                Common.foodSelected =
+                                                    foodSnapshot.getValue(FoodModel::class.java)
+                                                Common.foodSelected!!.key = foodSnapshot.key
+                                            }
+                                            navController!!.navigate(R.id.nav_food_detail)
+                                        } else {
+                                            Toast.makeText(
+                                                this@HomeActivity,
+                                                "Item doesn't exists",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                        dialog!!.dismiss()
+
+                                    }
+
+                                    override fun onCancelled(p0: DatabaseError) {
+                                        dialog!!.dismiss()
+                                        Toast.makeText(
+                                            this@HomeActivity,
+                                            "" + p0.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                })
+                        } else {
+                            dialog!!.dismiss()
+                            Toast.makeText(
+                                this@HomeActivity,
+                                "Item doesn't exists",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                        }
+                    }
+
+                })
+        }
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onBestDealItemClick(event: BestDealItemClick) {
+        if (event.model != null) {
+            dialog!!.show()
+
+            FirebaseDatabase.getInstance().getReference("Category")
+                .child(event.model!!.menu_id!!)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onCancelled(p0: DatabaseError) {
+                        dialog!!.dismiss()
+                        Toast.makeText(this@HomeActivity, "" + p0.message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
+
+                    override fun onDataChange(p0: DataSnapshot) {
+                        if (p0.exists()) {
+                            Common.categorySelected = p0.getValue(CategoryModel::class.java)
+                            Common.categorySelected!!.menu_id = p0.key
+                            FirebaseDatabase.getInstance().getReference("Category")
+                                .child(event.model!!.menu_id!!)
+                                .child("foods")
+                                .orderByChild("id")
+                                .equalTo(event.model.food_id)
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(p0: DataSnapshot) {
+                                        if (p0.exists()) {
+                                            for (foodSnapshot in p0.children) {
+                                                Common.foodSelected =
+                                                    foodSnapshot.getValue(FoodModel::class.java)
+                                                Common.foodSelected!!.key = foodSnapshot.key
+                                            }
+                                            navController!!.navigate(R.id.nav_food_detail)
+
+                                        } else {
+                                            Toast.makeText(
+                                                this@HomeActivity,
+                                                "Item doesn't exists",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                        dialog!!.dismiss()
+
+                                    }
+
+                                    override fun onCancelled(p0: DatabaseError) {
+                                        dialog!!.dismiss()
+                                        Toast.makeText(
+                                            this@HomeActivity,
+                                            "" + p0.message,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                })
+                        } else {
+                            dialog!!.dismiss()
+                            Toast.makeText(
+                                this@HomeActivity,
+                                "Item doesn't exists",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                        }
+                    }
+
+                })
+        }
+    }
+
     private fun countCartItem() {
         cartDataSource.countItemInCart(com.example.eatitclient.Common.Common.currentUser!!.uid!!)
             .subscribeOn(Schedulers.io())
@@ -193,5 +347,12 @@ class HomeActivity : AppCompatActivity() {
             fab.show()
     }
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public fun onMenuItemBack(event: MenuItemback) {
+        menuItemClick = -1
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        }
+    }
 
 }
