@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                     override fun onPermissionDenied(response: PermissionDeniedResponse?) {
                         Toast.makeText(
                             this@MainActivity,
-                            "You must accep this permisison to use app",
+                            "You must accept this permisison to use app",
                             Toast.LENGTH_SHORT
                         ).show();
                     }
@@ -148,11 +148,10 @@ class MainActivity : AppCompatActivity() {
         builder.setView(itemView)
         builder.setNegativeButton("CANCEL") { dialogInterface, i -> dialogInterface.dismiss()}
         builder.setPositiveButton("REGISTER") { dialogInterface, i ->
-            if(TextUtils.isDigitsOnly(edt_name.text.toString())){
+            if (TextUtils.isEmpty(edt_name.text.toString())) {
                 Toast.makeText(this@MainActivity,"Please enter your name",Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
-            }
-            else if(TextUtils.isDigitsOnly(edt_address.text.toString())){
+            } else if (TextUtils.isEmpty(edt_address.text.toString())) {
                 Toast.makeText(this@MainActivity,"Please enter your address",Toast.LENGTH_SHORT).show()
                 return@setPositiveButton
             }
@@ -211,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     Common.currentUser = userModel!!
                     Common.currentToken = token!!
-                    Common.updateToken(this@MainActivity, task.result!!.token)
+                    Common.updateToken()
                     startActivity(Intent(this@MainActivity, HomeActivity::class.java))
                     finish()
                 }

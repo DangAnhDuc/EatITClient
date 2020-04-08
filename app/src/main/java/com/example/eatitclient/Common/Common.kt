@@ -13,8 +13,8 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
+import android.util.Log
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.eatitclient.Model.*
 import com.example.eatitclient.R
@@ -100,13 +100,13 @@ object Common {
         }
     }
 
-    fun updateToken(context: Context, token: String) {
+    fun updateToken() {
         FirebaseDatabase.getInstance()
             .getReference(Common.TOKEN_REF)
             .child(currentUser!!.uid!!)
-            .setValue(TokenModel(currentUser!!.uid!!, token))
+            .setValue(TokenModel(currentUser!!.uid!!, Common.SESSION_TOKEN))
             .addOnFailureListener { e ->
-                Toast.makeText(context, "" + e.message, Toast.LENGTH_SHORT).show()
+                Log.d("Token Error", e.message)
             }
     }
 
@@ -157,6 +157,10 @@ object Common {
         notificationManager.notify(id, notification)
     }
 
+    fun getNewOrderTopic(): String {
+        return java.lang.StringBuilder("/topics/new_order").toString()
+    }
+
 
     val NOTI_TITLE = "title"
     val NOTI_CONTENT = "content"
@@ -173,4 +177,5 @@ object Common {
     val POPULAR_REF= "MostPopular"
     val USER_REFERENCE= "Users"
     var currentUser:UserModel?=null
+    var SESSION_TOKEN: String = ""
 }

@@ -19,5 +19,6 @@
     <string name="sign_out">Sign Out</string>
     <string name="menu_view_order">View Order</string>
     <string name="view_order">View Order</string>
+    <string name="action_search">Search</string>
 
 </resources>

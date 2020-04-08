@@ -37,10 +37,14 @@ import com.example.eatitclient.EventBus.CountCartEvent
 import com.example.eatitclient.EventBus.HideFABCart
 import com.example.eatitclient.EventBus.MenuItemback
 import com.example.eatitclient.EventBus.UpdateItemInCart
+import com.example.eatitclient.Model.FCMResponse
+import com.example.eatitclient.Model.FCMSendData
 import com.example.eatitclient.Model.Order
 import com.example.eatitclient.R
 import com.example.eatitclient.Remote.ICloudFunctions
+import com.example.eatitclient.Remote.IFCMServices
 import com.example.eatitclient.Remote.RetrofitCloudClient
+import com.example.eatitclient.Remote.RetrofitFCMClient
 import com.google.android.gms.location.*
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.database.DataSnapshot
@@ -60,6 +64,7 @@ import org.greenrobot.eventbus.ThreadMode
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashMap
 
 class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
 
@@ -79,7 +84,7 @@ class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var currentLocation: Location
 
-
+    lateinit var ifcmServices: IFCMServices
     internal var address: String = ""
     internal var comment: String = ""
 
@@ -159,6 +164,7 @@ class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
         setHasOptionsMenu(true)
 
         cloudFunctions = RetrofitCloudClient.getInstance().create(ICloudFunctions::class.java)
+        ifcmServices = RetrofitFCMClient.getInstance().create(IFCMServices::class.java)
         listener = this
         cartDataSource = LocalCartDataSource(CartDatabase.getInstance(context!!).cartDAO())
         txt_empty_cart = root!!.findViewById(R.id.txt_empty_cart) as TextView
@@ -360,7 +366,12 @@ class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
                             }
 
                             override fun onError(e: Throwable) {
-                                Toast.makeText(context, "" + e.message, Toast.LENGTH_SHORT).show()
+                                if (!e.message!!.contains("Query returned empty"))
+                                    Toast.makeText(
+                                        context,
+                                        "[SUM CART]" + e.message,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                             }
                         })
 
@@ -390,11 +401,35 @@ class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(object : SingleObserver<Int> {
                             override fun onSuccess(t: Int) {
-                                Toast.makeText(
-                                    context,
-                                    "Order placed succesfully",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                var dataSend = HashMap<String, String>()
+                                dataSend.put(Common.NOTI_TITLE, "New Order")
+                                dataSend.put(
+                                    Common.NOTI_CONTENT,
+                                    "You have new order" + Common.currentUser!!.phone
+                                )
+                                val sendData = FCMSendData(Common.getNewOrderTopic(), dataSend)
+                                compositeDisposable.add(
+                                    ifcmServices.sendNotification(sendData)
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe({ fcmResponse: FCMResponse ->
+                                            if (fcmResponse!!.succes != 0) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Order placed successfully",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }, { throwable ->
+                                            Toast.makeText(
+                                                context,
+                                                "Order was sent but notification failed",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        })
+
+
+                                )
                                 EventBus.getDefault().postSticky(CountCartEvent(true))
                             }
 
@@ -443,7 +478,7 @@ class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
 
                 override fun onError(e: Throwable) {
                     if (!e.message!!.contains("Query returned empty"))
-                        Toast.makeText(context, "" + e.message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "[SUM CART]" + e.message, Toast.LENGTH_SHORT).show()
                 }
             })
     }
@@ -598,11 +633,12 @@ class CartFragment : Fragment(), ILoadTimeFromFirebaseCallback {
                                                 }
                                             },
                                                 { throwable ->
-                                                    Toast.makeText(
-                                                        context,
-                                                        "" + throwable.message,
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                    if (!throwable.message!!.contains("Query returned empty"))
+                                                        Toast.makeText(
+                                                            context,
+                                                            "[SUM CART]" + throwable.message,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                 })
                                     )
                                 },

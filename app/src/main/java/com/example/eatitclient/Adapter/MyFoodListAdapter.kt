@@ -89,7 +89,7 @@ class MyFoodListAdapter(
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         Glide.with(context).load(foodList.get(position).image).into(holder.food_image!!)
         holder.food_name!!.setText(foodList.get(position).name)
-        holder.food_price!!.setText(foodList.get(position).price.toString())
+        holder.food_price!!.setText(StringBuilder("$").append(foodList.get(position).price.toString()))
 
         holder.setListener(object : IRecyclerItemClickListener {
             override fun onItemClick(view: View, pos: Int) {
@@ -214,6 +214,5 @@ class MyFoodListAdapter(
         if (compositeDisposable != null)
             compositeDisposable.clear()
     }
-
 
 }

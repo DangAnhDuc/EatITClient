@@ -80,4 +80,8 @@ class MyCategoriesAdapter(
                     Common.DEFAULT_COLUMN_COUNT
         }
     }
+
+    fun getCategoryList(): List<CategoryModel> {
+        return categoriesList
+    }
 }
